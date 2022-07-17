@@ -104,7 +104,7 @@ function _interpolate(A::AkimaInterpolation{<:AbstractVector}, t::Number)
 end
 
 # ConstantInterpolation Interpolation
-function _interpolate(A::ConstantInterpolation{<:AbstractVector}, t::Number)
+function _interpolate(A::ConstantInterpolation{<:AbstractVector}, t::InputType)
   if A.dir === :left
     # :left means that value to the left is used for interpolation
     i = searchsortedlast(A.t, t)
@@ -116,7 +116,7 @@ function _interpolate(A::ConstantInterpolation{<:AbstractVector}, t::Number)
   end
 end
 
-function _interpolate(A::ConstantInterpolation{<:AbstractMatrix}, t::Number)
+function _interpolate(A::ConstantInterpolation{<:AbstractMatrix}, t::InputType)
   if A.dir === :left
     # :left means that value to the left is used for interpolation
     i = searchsortedlast(A.t, t)

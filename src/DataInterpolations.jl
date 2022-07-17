@@ -13,8 +13,10 @@ Base.setindex!(A::AbstractInterpolation,x,i) = A.u[i] = x
 Base.setindex!(A::AbstractInterpolation{true},x,i) =
     i <= length(A.u) ? (A.u[i] = x) : (A.t[i-length(A.u)] = x)
 
-using ChainRulesCore, LinearAlgebra, RecursiveArrayTools, RecipesBase, Reexport
+using ChainRulesCore, Dates, LinearAlgebra, RecursiveArrayTools, RecipesBase, Reexport
 @reexport using Optim
+
+const InputType = Union{Number, TimeType}
 
 include("interpolation_caches.jl")
 include("interpolation_utils.jl")
@@ -26,15 +28,15 @@ include("online.jl")
 
 function ChainRulesCore.rrule(::typeof(_interpolate),
                               A::Union{LagrangeInterpolation,AkimaInterpolation,
-                                       BSplineInterpolation,BSplineApprox}, t::Number)
+                                       BSplineInterpolation,BSplineApprox}, t::InputType)
     interpolate_pullback(Δ) = (NoTangent(), NoTangent(), derivative(A, t) * Δ)
     return _interpolate(A, t), interpolate_pullback
 end
 
 ChainRulesCore.frule((_, _, Δt), ::typeof(_interpolate), A::AbstractInterpolation,
-                     t::Number) = _interpolate(A, t), derivative(A, t) * Δt
+                     t::InputType) = _interpolate(A, t), derivative(A, t) * Δt
 
-(interp::AbstractInterpolation)(t::Number) = _interpolate(interp, t)
+(interp::AbstractInterpolation)(t::InputType) = _interpolate(interp, t)
 
 using Symbolics: Num, unwrap, SymbolicUtils
 (interp::AbstractInterpolation)(t::Num) = SymbolicUtils.term(interp, unwrap(t))
